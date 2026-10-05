@@ -1,150 +1,242 @@
-# INNOBLOCK 2.0 · Starter Kit
+# 🛡️ Token Approval Security Manager
 
-**5–7 October 2026 · GCET · Teams of 2–4 · Testnets only · Organised by the GCET Blockchain Club**
+> **A real-time Web3 security dApp that audits active ERC-20 token approvals on Ethereum Sepolia, identifies risky & unlimited permissions with deterministic rules, explains risks using AI, and enables one-click or batch revocation directly from your browser wallet.**
 
-Clone this repo and you have a working dApp from minute one: a smart contract, a Python backend and a web page that write to a blockchain testnet and prove records were never changed. Spend the hackathon on your idea, not on boilerplate.
+![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?logo=tailwindcss)
+![viem](https://img.shields.io/badge/viem-2.21-indigo)
+![Network](https://img.shields.io/badge/Network-Ethereum_Sepolia_(11155111)-purple)
 
-This page is the summary. The full **participant handbook** is [INNOBLOCK-2.0-Handbook.pdf](INNOBLOCK-2.0-Handbook.pdf) (10 pages), and every step is covered in detail, with screenshots, in five guides in [`docs/`](docs/), each also available as a PDF. Announcements: [@gcet_blockchain](https://www.instagram.com/gcet_blockchain/) on Instagram.
+---
 
-## The three days
+## 🌟 Overview
 
-| Day | Date | What happens | Walk out with |
-| --- | --- | --- | --- |
-| **Day 1 · Guest lecture** | Mon 5 Oct | Guest lecture, problem statements handed out, team ideation | A chosen problem statement, a one-line idea, and everything in [Before you arrive](#before-you-arrive) done |
-| **Day 2 · Build** | Tue 6 Oct | The whole day is yours to build | Contract deployed, app live, full flow tested |
-| **Day 3 · Judgment day** | Wed 7 Oct | Pitches and live demos before the judges | A tight pitch, a working demo, a submitted repo |
+When interacting with decentralized applications (DEXes, NFT marketplaces, staking protocols), users grant **ERC-20 token approvals** via `approve(spender, amount)`. Most dApps request **unlimited allowances** (`2^256 - 1`) for UX convenience so users don't need to sign every trade. 
 
-## Before you arrive
+However, if a spender contract is exploited, has malicious upgradeability, or is an unknown phishing contract, **any approved tokens can be drained directly from your wallet without additional confirmation**.
 
-Do this before Day 2, ideally tonight. Installs and faucet waits are the most common way teams lose their build morning.
+**Token Approval Security Manager** solves this problem on the **Ethereum Sepolia testnet**:
+1. **Discovers all active token approvals** for any connected MetaMask/injected wallet.
+2. **Deterministic Risk Engine**: Automatically categorizes approvals as **HIGH**, **MEDIUM**, or **LOW** risk based on allowance size, known protocol registries, and approval age.
+3. **AI Risk Explanations**: Uses an AI engine to translate complex blockchain permissions into plain, actionable advice.
+4. **On-Chain Revocation**: Submits real `approve(spender, 0)` transactions to Sepolia, verified on block explorers.
+5. **Batch Revocation**: Sequentially revokes multiple risky allowances in one organized flow.
+6. **New Unlimited Approval Detection**: Alerts you whenever a new unlimited allowance appears on your wallet.
+7. **Testnet Demo Playground**: Built-in test token faucet and approval creator so judges and developers can test the full lifecycle in seconds.
 
-- [ ] **Laptop**: Chrome, Brave or Edge with [MetaMask](https://metamask.io); in MetaMask, Settings → Advanced → **Show test networks** on
-- [ ] **A new wallet just for the hackathon** (a "burner"). Never use one that has held real money
-- [ ] **Python 3.10+** and **Git** installed (`python --version`, `git --version`)
-- [ ] **Test tokens** in your wallet. For Sepolia, these work with a new wallet: [QuickNode](https://faucet.quicknode.com/ethereum/sepolia), [Google Cloud](https://cloud.google.com/application/web3/faucet/ethereum/sepolia), [PoW faucet](https://sepolia-faucet.pk910.de). One teammate can share with the rest
-- [ ] **The starter installed**: clone this repo and run step 2 of the [Quick start](#quick-start). If `pip install` works tonight, it works tomorrow
-- [ ] **Free accounts**, one per team: [GitHub](https://github.com), [Render](https://render.com), [Vercel](https://vercel.com) or [Netlify](https://netlify.com), [Neon](https://neon.tech) or [Supabase](https://supabase.com), [UptimeRobot](https://uptimerobot.com), and an AI provider if your idea uses AI
+---
 
-Step by step, with a 10-minute self-test: [docs/01-setup.md](docs/01-setup.md).
+## 🏗️ Architecture
 
-## Minimum to be judged
+```
+                    ┌─────────────────────────┐
+                    │    User with MetaMask   │
+                    └────────────┬────────────┘
+                                 │
+                     Connects & Signs Tx
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│               Frontend (Next.js 14 + Tailwind CSS)              │
+│                                                                 │
+│  ┌───────────────────────┐             ┌─────────────────────┐  │
+│  │ WalletConnect & State │             │ ApprovalTable (UI)  │  │
+│  └───────────┬───────────┘             └──────────┬──────────┘  │
+│              │                                    │             │
+│              ▼                                    ▼             │
+│  ┌───────────────────────┐             ┌─────────────────────┐  │
+│  │    Network Enforcer   │             │ RiskBadge / Revoke  │  │
+│  │  (Sepolia: 11155111)  │             │ / BatchRevoke UI    │  │
+│  └───────────────────────┘             └──────────┬──────────┘  │
+└───────────────────────────────────────────────────┼─────────────┘
+                                                    │
+                                                    ▼
+┌─────────────────────────┐             ┌─────────────────────────┐
+│   Server-Side AI API    │             │   viem Blockchain Layer │
+│   /api/ai/explain       │             │   (Sepolia RPC)         │
+│   (Secures AI_API_KEY)  │             │   - eth_getLogs         │
+└─────────────────────────┘             │   - allowance(o, s)     │
+                                        │   - approve(spender, 0) │
+                                        └───────────┬─────────────┘
+                                                    │
+                                                    ▼
+                                        ┌─────────────────────────┐
+                                        │  Ethereum Sepolia Chain │
+                                        │  - Real ERC-20 Tokens   │
+                                        │  - Verified Explorers   │
+                                        └─────────────────────────┘
+```
 
-- [x] A smart contract deployed on a **public testnet**, its address in your README and on your first slide:
-  - **Network**: Ethereum Sepolia
-  - **Contract Address**: [`0x6257897806a3825590bB75b0024dEeff7481Acaa`](https://sepolia.etherscan.io/address/0x6257897806a3825590bB75b0024dEeff7481Acaa)
-  - **Explorer / Verification**: [Verified on Sepolia Etherscan / Blockscout / Sourcify](https://sepolia.etherscan.io/address/0x6257897806a3825590bB75b0024dEeff7481Acaa)
-- [ ] At least one transaction from your app visible on the network's **block explorer**
-- [x] A web page that connects a wallet and shows each transaction's status (pending / confirmed / failed)
-- [x] A **public GitHub repo** with a README: setup steps and how to test
+---
 
-Extras (AI, a database, a polished UI) earn marks, but only once the minimum works.
+## 🚀 Quick Start (Run Locally)
 
-## Ground rules
+### Prerequisites
+- [Node.js](https://nodejs.org) v18+ or v20+ or v22+
+- A Web3 Browser Wallet ([MetaMask](https://metamask.io))
+- A little free Sepolia test ETH ([Sepolia Faucets](#-getting-sepolia-test-tokens))
 
-- **Testnets only.** Any public testnet is allowed. The starter supports five EVM testnets out of the box (below), and any other EVM testnet takes one config entry. Never mainnet, never real money.
-- **Burner wallets only.** Make a fresh wallet for the hackathon. Never use one that has held real funds.
-- **AI is allowed**, both as a coding assistant and inside your app, with any provider you like.
-- **The starter is optional.** Swap any part (Hardhat or Foundry, React, a Node backend) if your team prefers. You're judged on what you build on top.
-- **Every member should be able to explain their part.** Judges will ask.
-
-## Quick start
-
-You need Python 3.10+, Git, and a browser with MetaMask. Full walkthrough: [docs/02-build.md](docs/02-build.md).
-
+### 1. Clone & Install
 ```bash
-git clone https://github.com/murthyroshan/innoblock-2.0-starter.git
-cd innoblock-2.0-starter
+git clone https://github.com/deadpool17880/Proof-Registry.git
+cd Proof-Registry
+npm install
 ```
 
-**1. Deploy the contract.** [Open it in Remix](https://remix.ethereum.org/#url=https://raw.githubusercontent.com/murthyroshan/innoblock-2.0-starter/main/contracts/RecordRegistry.sol) (one click), compile, then in **Deploy & run** set Environment to **Browser Extension → MetaMask** and deploy on your testnet. Copy the contract address.
-
-**2. Run the backend.**
-
+### 2. Environment Configuration
+Copy `.env.example` to `.env.local`:
 ```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate            # Mac/Linux: source venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env           # Mac/Linux: cp .env.example .env
-# edit .env: PRIVATE_KEY, RPC_URL, CONTRACT_ADDRESS, EXPLORER_URL
-python app.py                    # http://localhost:5000/health should say "ok": true
+cp .env.example .env.local
 ```
+Edit `.env.local`:
+```ini
+# Ethereum Sepolia RPC URL (public node or your Alchemy/Infura endpoint)
+SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 
-**3. Run the frontend.** Set `ACTIVE_NETWORK` and `CONTRACT_ADDRESS` in [`frontend/config.js`](frontend/config.js), then in a second terminal:
+# AI API Key for risk explanations (Gemini or OpenAI-compatible)
+AI_API_KEY=your_gemini_or_openai_api_key_here
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_MODEL=gemini-2.5-flash
+```
+*(Note: If `AI_API_KEY` is left blank, the app will gracefully fall back to deterministic explanations without crashing!)*
 
+### 3. Run Development Server
 ```bash
-cd frontend
-python -m http.server 8000       # open http://localhost:8000
+npm run dev
+```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+---
+
+## ⛽ Getting Sepolia Test Tokens
+Sepolia test ETH is 100% free and has no monetary value. You only need a few cents' worth of test ETH (~0.01 ETH) to pay gas for revoke transactions:
+- **[Google Cloud Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)** (Instant with Google login)
+- **[QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)**
+- **[Sepolia PoW Faucet](https://sepolia-faucet.pk910.de)** (Mines in browser tab)
+
+---
+
+## 🔍 How It Works
+
+### 1. Approval Discovery
+- Scans Sepolia event logs for `Approval(address indexed owner, address indexed spender, uint256 value)` emitted by ERC-20 tokens where `owner == userAddress`.
+- Enriches discovery with popular Sepolia tokens (USDC, USDT, DAI, LINK, WETH) and Blockscout logs.
+- Queries the live, authoritative `allowance(owner, spender)` on the token smart contract.
+- Any allowance of `0` is treated as inactive/revoked and filtered out.
+
+### 2. Deterministic Risk Engine (`src/lib/risk/analyzer.ts`)
+The risk level is **never** left to AI guesswork; it is computed by explicit rules:
+- **Rule A (UNLIMITED)**: If allowance $\ge 2^{128}$ or equals `MaxUint256` $\rightarrow$ **HIGH RISK** (`"This spender has unlimited permission to use this token."`).
+- **Rule B (UNKNOWN SPENDER)**: If the spender is not in the verified spender registry $\rightarrow$ **HIGH / MEDIUM RISK** (`"This spender is not recognized as a known application."`).
+- **Rule C (OLD APPROVAL)**: If granted $> 30$ days ago $\rightarrow$ **MEDIUM RISK** (`"This approval appears to be old. Consider revoking if no longer in use."`).
+- **Rule D (NORMAL LIMITED)**: If limited and known $\rightarrow$ **LOW RISK** (`"This is a limited approval for a recognized spender."`).
+
+### 3. Known Spenders Registry (`src/lib/risk/knownSpenders.ts`)
+Verified Sepolia protocol contracts:
+- **Uniswap V3 SwapRouter02**: `0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E`
+- **Uniswap V3 SwapRouter**: `0xE592427A0AEce92De3Edee1F18E0157C05861564`
+- **Uniswap V2 Router02**: `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`
+- **Aave V3 Pool (Sepolia)**: `0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951`
+- **OpenSea Seaport 1.5**: `0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC`
+- **1inch Router v5**: `0x1111111254EEB25477B68fb85Ed929f73A960582`
+
+### 4. Revocation Engine
+- Submits an ERC-20 `approve(spender, 0)` transaction directly from the user's wallet via `viem`.
+- Waits for 1 block confirmation on Sepolia.
+- Re-reads `allowance(owner, spender)` to verify it dropped to 0 and removes the row.
+
+---
+
+## 🧪 Testing & Demo Walkthrough
+
+Don't have active approvals on your Sepolia wallet? We included a built-in **Testnet Demo Playground**:
+
+1. Click **Connect Wallet** in the top right.
+2. In the **Testnet Demonstration Helper** section, click **Open Demo Playground**.
+3. Click **Mint 1,000 STK** to get test tokens from the contract's public faucet.
+4. Click **Create Unlimited Approval** (approves an unknown contract with max allowance).
+5. Watch the dashboard instantly update:
+   - 🚨 The **New Unlimited Approval Alert** pops up.
+   - The token appears in the table marked with a red **HIGH RISK** badge.
+6. Click **Explain Risk with AI** to view the AI analysis.
+7. Click **Revoke**:
+   - Confirm the transaction in MetaMask.
+   - The confirmation link will appear with a direct link to Sepolia Etherscan!
+   - The allowance drops to 0 and the approval is removed.
+
+---
+
+## 🔒 Security Principles
+
+- **Zero Private Keys Stored**: The application never touches or requests private keys or seed phrases.
+- **Explicit User Signing**: Every revoke transaction must be explicitly reviewed and confirmed in the user's wallet.
+- **Server-Side AI Secrets**: The `AI_API_KEY` lives strictly in server-side Next.js route handlers (`/api/ai/explain`) and is never exposed in browser bundles.
+- **Fail-Safe Operation**: If the AI service is unavailable, the application continues to function 100% using deterministic rules.
+
+---
+
+## 📦 Project Structure
+
+```
+├── contracts/
+│   ├── RecordRegistry.sol          # Hackathon proof registry contract
+│   └── TestToken.sol               # ERC-20 testnet token with public faucet
+├── src/
+│   ├── app/
+│   │   ├── api/ai/explain/route.ts # Server-side AI risk explanation endpoint
+│   │   ├── globals.css             # Tailwind base & theme
+│   │   ├── layout.tsx              # Root HTML & metadata
+│   │   └── page.tsx                # Main Security Dashboard
+│   ├── components/
+│   │   ├── ApprovalRow.tsx         # Individual approval table row
+│   │   ├── ApprovalTable.tsx       # Approval list, search & filters
+│   │   ├── BatchRevoke.tsx         # Multi-approval sequential revocation
+│   │   ├── DemoHelper.tsx          # Faucet & test approval playground
+│   │   ├── NetworkWarning.tsx      # Wrong network detection banner
+│   │   ├── NewApprovalAlert.tsx    # Real-time monitoring alert
+│   │   ├── RevokeButton.tsx        # Revoke action with confirmation modal
+│   │   ├── RiskBadge.tsx           # HIGH / MEDIUM / LOW status pill
+│   │   ├── RiskExplanation.tsx     # AI & deterministic risk explanation modal
+│   │   └── WalletConnect.tsx       # MetaMask connection & Sepolia detection
+│   ├── lib/
+│   │   ├── ai/explainRisk.ts       # Client wrapper for AI API
+│   │   ├── blockchain/
+│   │   │   ├── client.ts           # Viem public & wallet clients
+│   │   │   ├── approvals.ts        # Approval discovery & allowance querying
+│   │   │   ├── revoke.ts           # Revocation transaction handler
+│   │   │   └── testToken.ts        # TestToken deploy & approval helper
+│   │   └── risk/
+│   │       ├── analyzer.ts         # Deterministic rule engine
+│   │       └── knownSpenders.ts    # Verified protocol address registry
+│   ├── types/
+│   │   └── approval.ts             # TypeScript definitions
+│   └── utils/
+│       └── formatting.ts           # Formatting for addresses, tokens & explorers
+├── .env.example                    # Sample environment template
+├── .gitignore                      # Git ignore protecting secrets & builds
+├── next.config.mjs                 # Next.js configuration
+├── package.json                    # Dependencies & build scripts
+├── postcss.config.js               # PostCSS config
+├── tailwind.config.js              # Tailwind styling config
+└── tsconfig.json                   # TypeScript configuration
 ```
 
-Connect your wallet, store a record, ask the AI, verify. Then make it yours.
+---
 
-## What's in the box
+## 🌐 Deploying to Vercel
 
-```text
-innoblock-2.0-starter/
-├── contracts/RecordRegistry.sol   stores a hash per record, emits an event, verifies
-├── backend/                       Flask + web3.py: AI call, signs transactions, saves records
-│   ├── app.py
-│   ├── abi.json                   contract interface (re-copy from Remix if you change the contract)
-│   ├── requirements.txt
-│   └── .env.example               every setting, with examples for each network and AI provider
-├── frontend/                      plain HTML + JS + ethers.js v6, no build step
-│   ├── config.js                  the only file you must edit: network, contract, backend URL
-│   ├── app.js
-│   ├── index.html
-│   └── style.css
-└── docs/                          five detailed guides (PDF copies in docs/pdf/)
-```
+1. Push your repository to GitHub.
+2. Sign in to [Vercel](https://vercel.com) and click **Add New → Project**.
+3. Select your repository: `Proof-Registry`.
+4. Under **Environment Variables**, add:
+   - `SEPOLIA_RPC_URL` = `https://ethereum-sepolia-rpc.publicnode.com`
+   - `AI_API_KEY` = your AI API key
+   - `AI_BASE_URL` = `https://generativelanguage.googleapis.com/v1beta/openai`
+   - `AI_MODEL` = `gemini-2.5-flash`
+5. Click **Deploy**. Your dApp will be live on an HTTPS domain within minutes!
 
-The demo app shows the core pattern: **keep the full record off-chain, put its fingerprint (hash) on-chain**, and let anyone prove the record wasn't changed. It works for AI decisions, certificates, land records, medical reports, trade signals and more. See [docs/02-build.md](docs/02-build.md#how-the-starter-works).
+---
 
-## Supported networks
-
-| Network | Chain ID | Currency | Explorer |
-| --- | --- | --- | --- |
-| **Ethereum Sepolia** (default) | 11155111 | ETH | [sepolia.etherscan.io](https://sepolia.etherscan.io) |
-| Base Sepolia | 84532 | ETH | [sepolia.basescan.org](https://sepolia.basescan.org) |
-| Polygon Amoy | 80002 | POL | [amoy.polygonscan.com](https://amoy.polygonscan.com) |
-| Arbitrum Sepolia | 421614 | ETH | [sepolia.arbiscan.io](https://sepolia.arbiscan.io) |
-| OP Sepolia | 11155420 | ETH | [sepolia-optimism.etherscan.io](https://sepolia-optimism.etherscan.io) |
-
-Faucets for every network, RPC URLs and how to switch: [docs/01-setup.md](docs/01-setup.md#networks-and-faucets).
-
-## Judging
-
-| Criterion | Marks | What judges look for |
-| --- | ---: | --- |
-| Working prototype & codebase | 30 | Live demo works end to end on a testnet; transactions visible on the explorer; the repo's code is what runs |
-| Blockchain | 25 | The chain is needed, not decorative; sensible on-chain / off-chain split; contract verified |
-| Technical quality (GitHub, README, smart contract) | 15 | Clean public repo with no secrets; complete README; readable, commented contract |
-| Pitch and Q&A | 15 | How well you explain the given problem statement and your solution, on time; every member answers questions about their part |
-| Innovation | 10 | A fresh angle; AI or other integrations that add real value |
-| UI / UX | 5 | Easy to follow; clear transaction feedback |
-| **Total** | **100** | |
-
-## Demo day must-haves
-
-- [ ] Frontend deployed and opens on a phone, on mobile data
-- [ ] Backend awake: open `/health` just before you present
-- [ ] Database connected and environment variables set on the host, not only on your laptop
-- [ ] Full flow tested 30 minutes before your slot
-- [ ] Demo wallet and backend wallet both hold test tokens
-- [ ] Local backup running, and a 1–2 minute backup video saved offline
-- [ ] Phone hotspot ready in case the Wi-Fi drops
-
-Full checklist, pitch structure and likely judge questions: [docs/05-pitch-and-judging.md](docs/05-pitch-and-judging.md).
-
-## Submit
-
-Public GitHub repo · contract address with its explorer link · live frontend URL · demo video link · slides as PDF · team name, members and domain. **Where and when to submit is announced on Day 1.**
-
-## Detailed guides
-
-| Guide | PDF | Read it when |
-| --- | --- | --- |
-| [01 · Setup and networks](docs/01-setup.md) | [PDF](docs/pdf/01-setup.pdf) | Tonight: laptop, wallet, accounts, test tokens; choosing and switching testnets |
-| [02 · Build](docs/02-build.md) | [PDF](docs/pdf/02-build.pdf) | Day 2: how the starter works, step by step with screenshots, AI prompt templates |
-| [03 · Deploy and security](docs/03-deploy-and-security.md) | [PDF](docs/pdf/03-deploy-and-security.pdf) | Putting it online for free (Neon / Supabase, Render, Vercel, UptimeRobot) and keeping keys safe |
-| [04 · Troubleshooting](docs/04-troubleshooting.md) | [PDF](docs/pdf/04-troubleshooting.pdf) | Something broke |
-| [05 · Pitch and judging](docs/05-pitch-and-judging.md) | [PDF](docs/pdf/05-pitch-and-judging.pdf) | Day 3 prep: criteria, pitch, demo-day and submission checklists |
+## 📜 License
+MIT License. Built for the INNOBLOCK 2.0 Blockchain Hackathon.
