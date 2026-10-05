@@ -29,10 +29,13 @@ Step by step, with a 10-minute self-test: [docs/01-setup.md](docs/01-setup.md).
 
 ## Minimum to be judged
 
-- [ ] A smart contract deployed on a **public testnet**, its address in your README and on your first slide
+- [x] A smart contract deployed on a **public testnet**, its address in your README and on your first slide:
+  - **Network**: Ethereum Sepolia
+  - **Contract Address**: [`0x6257897806a3825590bB75b0024dEeff7481Acaa`](https://sepolia.etherscan.io/address/0x6257897806a3825590bB75b0024dEeff7481Acaa)
+  - **Explorer / Verification**: [Verified on Sepolia Etherscan / Blockscout / Sourcify](https://sepolia.etherscan.io/address/0x6257897806a3825590bB75b0024dEeff7481Acaa)
 - [ ] At least one transaction from your app visible on the network's **block explorer**
-- [ ] A web page that connects a wallet and shows each transaction's status (pending / confirmed / failed)
-- [ ] A **public GitHub repo** with a README: setup steps and how to test
+- [x] A web page that connects a wallet and shows each transaction's status (pending / confirmed / failed)
+- [x] A **public GitHub repo** with a README: setup steps and how to test
 
 Extras (AI, a database, a polished UI) earn marks, but only once the minimum works.
 
