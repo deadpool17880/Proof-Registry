@@ -1,6 +1,6 @@
 import React from "react";
 import { Approval } from "@/types/approval";
-import { AlertOctagon, X, ShieldAlert, Sparkles } from "lucide-react";
+import { AlertOctagon, X, ShieldAlert, ArrowRight } from "lucide-react";
 import { formatAddress } from "@/utils/formatting";
 
 interface NewApprovalAlertProps {
@@ -21,43 +21,44 @@ export const NewApprovalAlert: React.FC<NewApprovalAlertProps> = ({
       {newApprovals.map((app) => (
         <div
           key={app.id}
-          className="bg-gradient-to-r from-red-950/90 to-rose-950/80 border-2 border-red-600/80 rounded-2xl p-4 text-red-100 shadow-xl shadow-red-950/40 relative animate-in slide-in-from-top-4"
+          className="bg-gradient-to-r from-rose-950/80 via-slate-900 to-rose-950/40 border border-rose-600/70 rounded-2xl p-4 text-rose-100 shadow-xl shadow-rose-950/30 relative animate-in slide-in-from-top-4"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-red-900/80 border border-red-500/80 rounded-xl text-red-200 shrink-0">
-                <AlertOctagon className="w-6 h-6 animate-bounce" />
+              <div className="p-2.5 bg-rose-900/60 border border-rose-500/60 rounded-xl text-rose-200 shrink-0">
+                <AlertOctagon className="w-5 h-5 text-rose-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black tracking-wider uppercase bg-red-600 text-white px-2 py-0.5 rounded">
-                    🚨 New Unlimited Approval
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase bg-rose-600/90 text-white px-2 py-0.5 rounded">
+                    UNLIMITED PERMISSION DETECTED
                   </span>
-                  <span className="text-xs font-bold text-red-300">
-                    High Risk Detected
+                  <span className="text-xs font-mono text-rose-300">
+                    High Risk Exposure
                   </span>
                 </div>
 
                 <div className="mt-2 text-sm text-slate-200">
-                  A new unlimited allowance was just granted for{" "}
+                  An unlimited token allowance was granted for{" "}
                   <strong className="text-white font-mono">{app.tokenSymbol}</strong> to spender{" "}
-                  <code className="bg-red-900/50 px-1.5 py-0.5 rounded font-mono text-xs text-red-200">
+                  <code className="bg-slate-950/80 border border-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-rose-300">
                     {formatAddress(app.spenderAddress, 8, 6)}
                   </code>
-                  {app.isKnownSpender ? ` (${app.spenderName})` : " (Unknown Spender)"}.
+                  {app.isKnownSpender ? ` (${app.spenderName})` : " (Unrecognized Spender)"}.
                 </div>
 
-                <p className="text-xs text-red-300 mt-1">
-                  This spender now has permission to transfer all of your {app.tokenSymbol}. If you did not intend this, revoke immediately.
+                <p className="text-xs text-slate-400 mt-1">
+                  The designated contract now has permission to transfer all of your {app.tokenSymbol}. If this was unintentional, revoke this permission immediately.
                 </p>
 
                 <div className="flex items-center gap-3 mt-3">
                   <button
                     onClick={() => onExplainRisk(app)}
-                    className="px-3.5 py-1.5 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Explain Risk with AI
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    Inspect Security Analysis
+                    <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
               </div>
@@ -65,8 +66,8 @@ export const NewApprovalAlert: React.FC<NewApprovalAlertProps> = ({
 
             <button
               onClick={() => onDismiss(app.id)}
-              className="p-1 rounded-lg text-red-300 hover:text-white hover:bg-red-900/60 transition"
-              title="Dismiss warning"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition"
+              title="Dismiss alert"
             >
               <X className="w-4 h-4" />
             </button>

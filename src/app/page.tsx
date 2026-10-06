@@ -16,9 +16,13 @@ import {
   ShieldCheck,
   AlertTriangle,
   Lock,
-  Sparkles,
-  Info,
+  Terminal,
+  Activity,
   CheckCircle2,
+  Info,
+  ChevronRight,
+  Fingerprint,
+  Zap,
 } from "lucide-react";
 
 export default function Home() {
@@ -57,7 +61,7 @@ export default function Home() {
       try {
         const latest = await getActiveApprovals(userAddress);
 
-        // Check for newly appeared unlimited approvals if this isn't the initial load
+        // Detect newly appeared unlimited allowances
         if (previousApprovals.length > 0) {
           const prevMap = new Set(previousApprovals.map((a) => a.id));
           const newUnlimited = latest.filter(
@@ -71,11 +75,11 @@ export default function Home() {
         setPreviousApprovals(latest);
         setApprovals(latest);
         if (isManualRefresh) {
-          showToast(`Synced ${latest.length} active approvals from Sepolia!`, "info");
+          showToast(`Synced ${latest.length} active allowances on Sepolia`, "info");
         }
       } catch (err: any) {
         console.error("Failed to load approvals:", err);
-        showToast("Error reading Sepolia blockchain data.", "error");
+        showToast("RPC synchronization failure.", "error");
       } finally {
         setLoading(false);
       }
@@ -83,7 +87,6 @@ export default function Home() {
     [userAddress, chainId, previousApprovals]
   );
 
-  // Initial load on wallet connect or chain change
   useEffect(() => {
     if (userAddress && chainId === SEPOLIA_CHAIN_ID) {
       fetchApprovals();
@@ -94,7 +97,6 @@ export default function Home() {
     }
   }, [userAddress, chainId]);
 
-  // Handle wallet connect
   const handleConnect = (address: string, newChainId: number) => {
     setUserAddress(address);
     setChainId(newChainId);
@@ -107,7 +109,6 @@ export default function Home() {
     setSelectedIds([]);
   };
 
-  // Selection toggles
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -122,16 +123,14 @@ export default function Home() {
     setSelectedIds([]);
   };
 
-  // Revoke completion handler
   const handleRevokeSuccess = (txHash: string) => {
-    showToast("Approval revoked on Sepolia! Refreshing allowances...", "success");
-    // Refresh list
+    showToast("Allowance set to zero. Refreshing on-chain state...", "success");
     setTimeout(() => {
       fetchApprovals();
     }, 1500);
   };
 
-  // Quick stats
+  // Metrics
   const totalApprovals = approvals.length;
   const highRiskCount = approvals.filter((a) => a.riskLevel === "HIGH").length;
   const mediumRiskCount = approvals.filter((a) => a.riskLevel === "MEDIUM").length;
@@ -147,17 +146,17 @@ export default function Home() {
           <div
             className={`px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2.5 ${
               toastMessage.type === "success"
-                ? "bg-emerald-950/90 border-emerald-700 text-emerald-200"
+                ? "bg-emerald-950/90 border-emerald-700/80 text-emerald-200"
                 : toastMessage.type === "error"
-                ? "bg-red-950/90 border-red-700 text-red-200"
-                : "bg-indigo-950/90 border-indigo-700 text-indigo-200"
+                ? "bg-rose-950/90 border-rose-700/80 text-rose-200"
+                : "bg-slate-900 border-indigo-700/80 text-indigo-200"
             }`}
           >
             {toastMessage.type === "success" && (
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             )}
             {toastMessage.type === "error" && (
-              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
             )}
             {toastMessage.type === "info" && (
               <Info className="w-4 h-4 text-indigo-400" />
@@ -167,24 +166,26 @@ export default function Home() {
         </div>
       )}
 
-      {/* Navigation / Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/50 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      {/* Navigation Bar */}
+      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-500 p-0.5 shadow-lg shadow-indigo-500/20">
-              <div className="w-full h-full bg-[#090d16] rounded-[10px] flex items-center justify-center text-indigo-400">
-                <Lock className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 p-0.5 shadow-md shadow-indigo-600/20">
+              <div className="w-full h-full bg-[#0a0f18] rounded-[10px] flex items-center justify-center text-indigo-400">
+                <Lock className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <h1 className="font-extrabold text-base md:text-lg tracking-tight text-white flex items-center gap-2">
-                Token Approval Security Manager
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-700/60">
+              <div className="flex items-center gap-2">
+                <h1 className="font-extrabold text-sm md:text-base tracking-tight text-white">
+                  Token Approval Security Manager
+                </h1>
+                <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-700/50">
                   Sepolia
                 </span>
-              </h1>
-              <p className="text-xs text-slate-400 hidden sm:block">
-                Audit active ERC-20 allowances, analyze risks with AI, and revoke permissions.
+              </div>
+              <p className="text-[11px] text-slate-400 hidden md:block">
+                On-chain allowance audit, deterministic risk heuristic engine, and permission revocation
               </p>
             </div>
           </div>
@@ -208,7 +209,7 @@ export default function Home() {
           }}
         />
 
-        {/* New Unlimited Approval Alert Banner */}
+        {/* Realtime Alert Banner */}
         <NewApprovalAlert
           newApprovals={newUnlimitedAlerts}
           onDismiss={(id) =>
@@ -219,46 +220,48 @@ export default function Home() {
 
         {userAddress ? (
           <>
-            {/* Security Metrics Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow">
-                <span className="text-xs text-slate-400 font-medium block mb-1">Total Active Approvals</span>
-                <div className="text-2xl font-black text-white">{totalApprovals}</div>
-                <span className="text-[11px] text-slate-500 mt-1 block">Live Sepolia allowances</span>
+            {/* Metric Overview Panels */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
+              <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  Active Allowances
+                </span>
+                <div className="text-2xl font-black font-mono text-white">{totalApprovals}</div>
+                <span className="text-[11px] text-slate-500 mt-1 block">Live on-chain records</span>
               </div>
 
-              <div className="bg-slate-900/60 border border-red-950/60 rounded-2xl p-4 shadow">
-                <span className="text-xs text-red-400 font-medium block mb-1 flex items-center gap-1">
+              <div className="bg-slate-900/60 border border-rose-950/60 rounded-xl p-4 shadow-sm">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 block mb-1 flex items-center gap-1.5">
                   <ShieldAlert className="w-3.5 h-3.5" /> High Risk (Unlimited)
                 </span>
-                <div className="text-2xl font-black text-red-400">{highRiskCount}</div>
-                <span className="text-[11px] text-slate-500 mt-1 block">Require immediate review</span>
+                <div className="text-2xl font-black font-mono text-rose-400">{highRiskCount}</div>
+                <span className="text-[11px] text-slate-500 mt-1 block">Requires manual audit</span>
               </div>
 
-              <div className="bg-slate-900/60 border border-amber-950/60 rounded-2xl p-4 shadow">
-                <span className="text-xs text-amber-400 font-medium block mb-1 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> Moderate Risk
+              <div className="bg-slate-900/60 border border-amber-950/60 rounded-xl p-4 shadow-sm">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400 block mb-1 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Moderate Exposure
                 </span>
-                <div className="text-2xl font-black text-amber-400">{mediumRiskCount}</div>
-                <span className="text-[11px] text-slate-500 mt-1 block">Unknown or old spenders</span>
+                <div className="text-2xl font-black font-mono text-amber-400">{mediumRiskCount}</div>
+                <span className="text-[11px] text-slate-500 mt-1 block">Unknown or stale spenders</span>
               </div>
 
-              <div className="bg-slate-900/60 border border-emerald-950/60 rounded-2xl p-4 shadow">
-                <span className="text-xs text-emerald-400 font-medium block mb-1 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Low Risk
+              <div className="bg-slate-900/60 border border-emerald-950/60 rounded-xl p-4 shadow-sm">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 block mb-1 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Bounded / Safe
                 </span>
-                <div className="text-2xl font-black text-emerald-400">{lowRiskCount}</div>
-                <span className="text-[11px] text-slate-500 mt-1 block">Verified limited spenders</span>
+                <div className="text-2xl font-black font-mono text-emerald-400">{lowRiskCount}</div>
+                <span className="text-[11px] text-slate-500 mt-1 block">Verified protocol routers</span>
               </div>
             </div>
 
-            {/* Testnet Demonstration Playground Helper */}
+            {/* Testnet Dev Simulation Lab */}
             <DemoHelper
               userAddress={userAddress}
               onApprovalsChanged={() => fetchApprovals(true)}
             />
 
-            {/* Approvals Table */}
+            {/* Main Approvals Data Table */}
             <ApprovalTable
               approvals={approvals}
               userAddress={userAddress}
@@ -272,18 +275,18 @@ export default function Home() {
               onDeselectAll={handleDeselectAll}
             />
 
-            {/* Batch Revoke Action Floating Bar */}
+            {/* Multi-Selection Revoke Floating Bar */}
             <BatchRevoke
               selectedApprovals={selectedApprovalsList}
               userAddress={userAddress}
               onClearSelection={handleDeselectAll}
               onBatchComplete={() => {
-                showToast("Batch revocation finished! Syncing approvals...", "success");
+                showToast("Batch revocation completed. Syncing on-chain state...", "success");
                 setTimeout(fetchApprovals, 1500);
               }}
             />
 
-            {/* AI Risk Explanation Modal */}
+            {/* Security Audit Modal */}
             <RiskExplanation
               approval={activeExplainingApproval}
               userAddress={userAddress}
@@ -292,33 +295,68 @@ export default function Home() {
             />
           </>
         ) : (
-          /* Empty / Unconnected State */
-          <div className="text-center py-20 px-4 bg-slate-900/40 border border-slate-800/80 rounded-3xl mt-4 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-950/60 border border-indigo-700/60 flex items-center justify-center text-indigo-400 mx-auto mb-4">
-              <Lock className="w-8 h-8" />
+          /* Disconnected State / Feature Walkthrough */
+          <div className="space-y-8 mt-4">
+            <div className="text-center py-16 px-6 bg-slate-900/40 border border-slate-800/80 rounded-2xl shadow-xl relative overflow-hidden">
+              <div className="inline-flex p-3 bg-indigo-950/60 border border-indigo-700/60 rounded-2xl text-indigo-400 mb-4 shadow-inner">
+                <Fingerprint className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
+                Audit and Revoke Sepolia Token Allowances
+              </h2>
+              <p className="text-slate-400 text-sm max-w-lg mx-auto mb-6 leading-relaxed">
+                Connect your Web3 wallet to inspect active smart contract permissions, flag unlimited token approvals, and revoke dangerous spenders directly on Ethereum Sepolia.
+              </p>
+
+              <div className="inline-block">
+                <WalletConnect
+                  userAddress={userAddress}
+                  chainId={chainId}
+                  onConnect={handleConnect}
+                  onDisconnect={handleDisconnect}
+                />
+              </div>
             </div>
-            <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2">
-              Connect Wallet to Inspect Token Approvals
-            </h2>
-            <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-              Connect your MetaMask wallet on Ethereum Sepolia testnet to scan active ERC-20 allowances, identify unlimited permissions, and revoke risky spenders.
-            </p>
-            <div className="inline-block">
-              <WalletConnect
-                userAddress={userAddress}
-                chainId={chainId}
-                onConnect={handleConnect}
-                onDisconnect={handleDisconnect}
-              />
+
+            {/* Core Architecture Capabilities */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-5 rounded-2xl bg-slate-900/30 border border-slate-800/80 space-y-2">
+                <div className="p-2 w-fit rounded-lg bg-slate-800/80 text-indigo-400">
+                  <Terminal className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Authoritative Log Querying</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Aggregates Sepolia <code className="text-indigo-300">Approval</code> logs and directly cross-checks <code className="text-indigo-300">allowance(owner, spender)</code> state on-chain.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-900/30 border border-slate-800/80 space-y-2">
+                <div className="p-2 w-fit rounded-lg bg-slate-800/80 text-amber-400">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Deterministic Risk Rules</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Classifies unbounded <code className="text-amber-300">MaxUint256</code> allowances, unregistered contracts, and stale authorizations with zero guesswork.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-900/30 border border-slate-800/80 space-y-2">
+                <div className="p-2 w-fit rounded-lg bg-slate-800/80 text-rose-400">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Direct On-Chain Revoke</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Submits zero-allowance transactions signed directly by your browser wallet. No private keys are ever stored or transmitted.
+                </p>
+              </div>
             </div>
           </div>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
-        <p>Token Approval Security Manager · Built for INNOBLOCK 2.0 Hackathon on Ethereum Sepolia Testnet</p>
-        <p className="mt-1">All revoke transactions are executed directly by your connected wallet. No private keys stored.</p>
+      <footer className="mt-16 border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 font-mono">
+        <p>Token Approval Security Manager · Ethereum Sepolia Testnet</p>
       </footer>
     </div>
   );

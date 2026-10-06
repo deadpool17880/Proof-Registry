@@ -9,7 +9,7 @@ import {
   TEST_KNOWN_SPENDER,
   DEFAULT_TEST_TOKEN,
 } from "@/lib/blockchain/testToken";
-import { Loader2, PlusCircle, Sparkles, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Loader2, PlusCircle, CheckCircle2, AlertTriangle, FlaskConical, Terminal, ArrowUpRight } from "lucide-react";
 import { getExplorerAddressUrl, getExplorerTxUrl } from "@/utils/formatting";
 
 interface DemoHelperProps {
@@ -39,11 +39,11 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
       const deployedAddr = await deployTestToken(userAddress);
       setTokenAddress(deployedAddr);
       setStatusMessage({
-        text: `New SecurityTestToken deployed at ${deployedAddr}!`,
+        text: `SecurityTestToken contract deployed on Sepolia at ${deployedAddr}`,
       });
     } catch (err: any) {
       setStatusMessage({
-        text: err?.shortMessage || err?.message || "Failed to deploy test token.",
+        text: err?.shortMessage || err?.message || "Contract deployment failed.",
         isError: true,
       });
     } finally {
@@ -57,12 +57,12 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
     try {
       const hash = await claimTestFaucet(tokenAddress, userAddress);
       setStatusMessage({
-        text: "Successfully minted 1,000 STK tokens to your wallet!",
+        text: "Minted 1,000 STK test tokens to your Sepolia wallet.",
         txHash: hash,
       });
     } catch (err: any) {
       setStatusMessage({
-        text: err?.shortMessage || err?.message || "Faucet claim failed.",
+        text: err?.shortMessage || err?.message || "Faucet transaction failed.",
         isError: true,
       });
     } finally {
@@ -80,14 +80,13 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
     try {
       const hash = await createTestApproval(tokenAddress, spender, userAddress, isUnlimited);
       setStatusMessage({
-        text: `Created ${isUnlimited ? "UNLIMITED" : "LIMITED"} test approval on Sepolia!`,
+        text: `Sepolia ${isUnlimited ? "Unlimited" : "Limited"} approval confirmed on-chain.`,
         txHash: hash,
       });
-      // Trigger approval list refresh
       onApprovalsChanged();
     } catch (err: any) {
       setStatusMessage({
-        text: err?.shortMessage || err?.message || "Failed to create approval.",
+        text: err?.shortMessage || err?.message || "Approval transaction failed.",
         isError: true,
       });
     } finally {
@@ -96,23 +95,32 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 mb-8">
+    <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
-            <Sparkles className="w-4 h-4" />
-            <span>Testnet Demonstration Helper</span>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-indigo-400">
+            <FlaskConical className="w-5 h-5" />
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Need real approvals to test revoking? Generate real on-chain Sepolia approvals in 1 click.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white tracking-tight">
+                Sepolia Testnet Simulation Fixtures
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                Devtools
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Generate real on-chain Sepolia allowances to test the audit and revoke pipeline.
+            </p>
+          </div>
         </div>
 
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition"
+          className="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition"
         >
-          {isOpen ? "Hide Demo Helper" : "Open Demo Playground"}
+          {isOpen ? "Close Fixtures" : "Open Simulation Fixtures"}
         </button>
       </div>
 
@@ -121,14 +129,15 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
           {/* Active test token selector */}
           <div className="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <span className="text-slate-400 block mb-0.5">Active Test Token:</span>
+              <span className="text-slate-400 block mb-0.5 font-mono text-[11px]">ACTIVE TEST TOKEN:</span>
               <a
                 href={getExplorerAddressUrl(tokenAddress)}
                 target="_blank"
                 rel="noreferrer"
-                className="font-mono text-indigo-300 hover:underline"
+                className="font-mono text-indigo-300 hover:underline flex items-center gap-1"
               >
                 {tokenAddress}
+                <ArrowUpRight className="w-3 h-3" />
               </a>
             </div>
 
@@ -143,18 +152,18 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
                 ) : (
                   <PlusCircle className="w-3.5 h-3.5" />
                 )}
-                Deploy New Test Token
+                Deploy New Token
               </button>
 
               <button
                 onClick={handleClaimFaucet}
                 disabled={!!loadingAction}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow"
               >
                 {loadingAction === "faucet" ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Terminal className="w-3.5 h-3.5" />
                 )}
                 Mint 1,000 STK
               </button>
@@ -164,18 +173,18 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
           {/* Quick Create Approval Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* 1. Unlimited Risk Approval */}
-            <div className="p-4 rounded-xl bg-red-950/20 border border-red-900/40 flex flex-col justify-between gap-3">
+            <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/40 flex flex-col justify-between gap-3">
               <div>
-                <span className="text-xs font-bold text-red-300 block">Create High-Risk Test Approval</span>
+                <span className="text-xs font-bold text-rose-300 block font-mono">FIXTURE 1: UNLIMITED PERMISSION</span>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Grants an <strong>UNLIMITED</strong> allowance to an unknown/unrecognized spender address.
+                  Grants an <strong>UNLIMITED</strong> (<code className="text-rose-300 font-mono">MaxUint256</code>) allowance to an unverified contract address.
                 </p>
               </div>
 
               <button
                 onClick={() => handleCreateApproval(true, false)}
                 disabled={!!loadingAction}
-                className="px-4 py-2 bg-red-600/90 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 shadow"
+                className="px-4 py-2 bg-rose-600/90 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 shadow"
               >
                 {loadingAction === "unlimited" ? (
                   <>
@@ -183,7 +192,7 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
                     Confirming in MetaMask...
                   </>
                 ) : (
-                  "Create Unlimited Approval"
+                  "Create Unlimited Allowance (High Risk)"
                 )}
               </button>
             </div>
@@ -191,9 +200,9 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
             {/* 2. Normal Limited Approval */}
             <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-900/40 flex flex-col justify-between gap-3">
               <div>
-                <span className="text-xs font-bold text-emerald-300 block">Create Safe / Limited Test Approval</span>
+                <span className="text-xs font-bold text-emerald-300 block font-mono">FIXTURE 2: LIMITED PERMISSION</span>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Grants a limited <strong>100 STK</strong> allowance to a verified spender (Uniswap V3 Router).
+                  Grants a bounded <strong>100 STK</strong> allowance to a verified protocol router (Uniswap V3).
                 </p>
               </div>
 
@@ -208,7 +217,7 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
                     Confirming in MetaMask...
                   </>
                 ) : (
-                  "Create Limited Approval (100 STK)"
+                  "Create Limited Allowance (100 STK)"
                 )}
               </button>
             </div>
@@ -219,12 +228,12 @@ export const DemoHelper: React.FC<DemoHelperProps> = ({
             <div
               className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
                 statusMessage.isError
-                  ? "bg-red-950/80 border-red-800 text-red-200"
+                  ? "bg-rose-950/80 border-rose-800 text-rose-200"
                   : "bg-emerald-950/80 border-emerald-800 text-emerald-200"
               }`}
             >
               {statusMessage.isError ? (
-                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
               ) : (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               )}
